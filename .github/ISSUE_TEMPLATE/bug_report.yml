@@ -1,0 +1,23 @@
+name: 问题反馈
+description: 报告界面、连接或额度显示问题，请勿提交凭据
+body:
+  - type: markdown
+    attributes:
+      value: 请先遮盖截图中的账号和余额。不要上传密钥、登录令牌、完整 state.json 或原始接口响应。安全漏洞请参考 SECURITY.md。
+  - type: input
+    id: version
+    attributes:
+      label: Token++ 版本和 Windows 版本
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 如何复现、预期和实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 脱敏错误提示及相关客户端版本
+      description: 例如 Codex / Tools 版本、是否在桌面模式。不要粘贴完整日志或授权头。

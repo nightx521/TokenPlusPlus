@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-window",
+  "description": "主窗口拖动与收起",
+  "windows": ["main"],
+  "permissions": ["core:default", "core:window:allow-start-dragging", "core:window:allow-hide", "core:window:allow-minimize"]
+}

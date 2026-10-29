@@ -1,0 +1,67 @@
+/* A compact desktop instrument: aligned readouts, one glass surface. */
+.full-panel{font-size:calc(15px * var(--ui-scale,1))}
+.full-panel .identity h2,.full-panel .settings-page form>h2{font-size:calc(15px * var(--ui-scale,1))}
+.full-panel .identity p,.full-panel .badge,.full-panel .details-button,.full-panel .connect-button,.full-panel .metric-label,.full-panel .coupon-expiry,.full-panel .provider-note,.full-panel .reset-line,.full-panel .details dl,.full-panel .detail-actions .text-button{font-size:calc(12px * var(--ui-scale,1))}
+.full-panel .text-button,.full-panel .intro-bottom,.full-panel .section-label,.full-panel .settings-subtitle,.full-panel .field,.full-panel .field input,.full-panel .field select,.full-panel .info-box,.full-panel .connection-state,.full-panel .primary-button,.full-panel .empty-metric,.full-panel .error-message{font-size:calc(13px * var(--ui-scale,1))}
+.full-panel .switch-row strong{font-size:calc(14px * var(--ui-scale,1))}.full-panel .switch-row small{font-size:calc(12px * var(--ui-scale,1))}
+.full-panel .balance-value{font-size:calc(26px * var(--ui-scale,1))}.full-panel .quota-value{font-size:calc(23px * var(--ui-scale,1))}
+.full-panel .settings-tabs button{font-size:calc(12px * var(--ui-scale,1));padding:7px 6px}
+.full-panel .bottom-bar,.full-panel .dashboard-footer,.full-panel .privacy-note{font-size:calc(11px * var(--ui-scale,1))}
+.full-panel .bottom-bar{height:auto;min-height:34px;line-height:1.5;padding-top:5px;padding-bottom:5px}
+.full-panel .intro{padding:17px 0}.full-panel h1{font-size:calc(27px * var(--ui-scale,1))}
+.full-panel .quota-value small,.full-panel .onboarding p{font-size:calc(12px * var(--ui-scale,1))}
+.full-panel .details dl>div{gap:12px}.full-panel .details dt{flex-shrink:1;min-width:70px}
+.full-panel .switch-row{padding:7px 0 14px;line-height:1.5}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.settings-grid .field{margin:8px 0}
+.platform-options{border:1px solid #d6dfed;border-radius:9px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;margin:17px 0;color:#667d9c}
+.platform-options legend{padding:0 5px;font-size:12px}.platform-options label{display:flex;align-items:center;gap:6px}.platform-options input{accent-color:#4263ce}
+html.widget-active,html.widget-active body{background:transparent!important;min-height:0!important;margin:0;overflow:hidden}
+html.widget-active #root{width:350px}html.native.widget-active #root{width:100%}
+.desktop-widget{--ui-scale:1;position:relative;isolation:isolate;width:100%;border-radius:20px;border:1px solid transparent;color:#263955;font-family:"Segoe UI Variable Text","Segoe UI","Microsoft YaHei UI",sans-serif;overflow:hidden;box-shadow:none}
+.widget-backdrop{position:absolute;inset:0;overflow:hidden;z-index:-1;background:#b5c5d5}
+.wallpaper-sample{position:absolute;background-position:center;background-size:cover;background-repeat:no-repeat;filter:blur(18px);pointer-events:none}
+.glass-tint{position:absolute;inset:0;background:rgb(241 246 253 / var(--glass-opacity,.65))}
+.desktop-widget.liquid{border-color:transparent;border-radius:23px;box-shadow:inset 0 0 18px #ffffff26}
+.liquid .wallpaper-sample{filter:blur(8px) saturate(1.15)}
+.liquid .glass-tint{background:linear-gradient(130deg,rgb(255 255 255 / calc(var(--glass-opacity)*.9)),rgb(231 242 255 / calc(var(--glass-opacity)*.65)) 48%,rgb(255 255 255 / calc(var(--glass-opacity)*.8)))}
+.desktop-widget.dark{color:#eff5ff;border-color:transparent;box-shadow:none}
+.dark .glass-tint{background:rgb(23 36 56 / var(--glass-opacity,.65))}
+.dark.liquid .glass-tint{background:linear-gradient(130deg,rgb(39 56 79 / var(--glass-opacity)),rgb(18 30 50 / calc(var(--glass-opacity)*.8)),rgb(50 66 92 / var(--glass-opacity)))}
+.desktop-widget.dark.liquid{box-shadow:inset 0 0 18px #d7eaff12;border-color:transparent}
+.widget-content{padding:9px 16px 8px;position:relative}
+.widget-header{display:flex;align-items:center;justify-content:space-between;gap:12px;height:24px;margin-bottom:5px;user-select:none}
+.widget-grip{display:flex;gap:9px;align-items:center;flex:1;align-self:stretch;cursor:grab;color:#61758e;min-width:80px}.widget-grip.locked{cursor:default}.widget-brand{font-size:14px;font-weight:750;letter-spacing:-1.4px;color:inherit}
+.widget-grip svg{opacity:.55}.widget-actions{display:flex;gap:3px}.widget-actions button{width:25px;height:25px;display:flex;align-items:center;justify-content:center;background:transparent;color:#526d8f;border-radius:6px;padding:0}
+.widget-actions button:hover{background:#ffffff65;color:#234576}.widget-actions button:focus-visible{outline:2px solid #4263ce;outline-offset:1px}
+.widget-platform{padding:10px 0;border-bottom:1px solid #5f7d9a25}.widget-platform:last-child{border-bottom:0;padding-bottom:8px}
+.widget-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;line-height:1.4}
+.widget-name{display:flex;align-items:center;gap:7px;font-size:calc(14px * var(--ui-scale));font-weight:600;white-space:nowrap}
+.widget-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#8394a6;flex-shrink:0}.widget-dot.good{background:#2b9271}.widget-dot.warn{background:#b27b32;box-shadow:0 0 0 3px #eaa2381a}
+.widget-amount{font-size:calc(21px * var(--ui-scale));font-weight:650;letter-spacing:-.6px;font-variant-numeric:tabular-nums;text-align:right}
+.widget-kind,.widget-empty{font-size:calc(12px * var(--ui-scale));color:#6a7f98}
+.widget-quota{margin-top:9px}.widget-quota-line{display:grid;grid-template-columns:minmax(42px,1fr) auto minmax(110px,auto);align-items:baseline;gap:10px;font-size:calc(12px * var(--ui-scale));color:#5f738e}
+.widget-quota-line strong{font-size:calc(18px * var(--ui-scale));font-variant-numeric:tabular-nums;color:#263955;font-weight:650;letter-spacing:-.4px}
+.widget-quota-line time{text-align:right;font-size:calc(11px * var(--ui-scale));white-space:nowrap;font-variant-numeric:tabular-nums}
+.widget-track{height:4px;border-radius:4px;background:#3150721c;margin-top:5px;overflow:hidden}.widget-track span{display:block;height:100%;border-radius:4px;background:#458b78}.widget-track span.low{background:#c68c3c}
+.widget-expiry{font-size:calc(11px * var(--ui-scale));text-align:right;margin-top:3px;color:#6e829b}.widget-expiry.near{color:#9a6428}
+.widget-warning{display:flex;align-items:center;gap:5px;font-size:calc(11px * var(--ui-scale));background:transparent;color:#996323;margin-top:6px;padding:2px 0;text-align:left}
+.problem .widget-amount,.problem .widget-quota{opacity:.6}
+.widget-meta,.widget-footer{font-size:calc(11px * var(--ui-scale));color:#70839b;margin-top:7px}.widget-footer{padding:4px 0 6px;text-align:center}.standard .widget-platform{padding-top:13px;padding-bottom:13px}
+.widget-demo{font-size:11px;color:#5d6ec5;text-align:right;margin:5px 0}
+.widget-setup{background:transparent;color:inherit;font-size:14px;line-height:1.7;padding:20px 0}
+.dark .widget-kind,.dark .widget-quota-line,.dark .widget-empty,.dark .widget-expiry,.dark .widget-meta,.dark .widget-footer,.dark .widget-grip,.dark .widget-actions button{color:#b7c9e3}
+.dark .widget-quota-line strong{color:#f2f7ff}.dark .widget-platform{border-color:#b5c9e024}.dark .widget-track{background:#aec8e025}.dark .widget-track span{background:#71bea7}.dark .widget-warning,.dark .widget-expiry.near{color:#efc18b}
+.widget-toast{position:fixed;left:10px;right:10px;bottom:7px;padding:9px 12px;background:#253952ef;color:#fff;font-size:12px;border-radius:9px;box-shadow:0 2px 10px #0002;z-index:20;line-height:1.5}
+.widget-preview-menu{position:absolute;inset:8px 8px auto auto;background:#f4f7fcf5;box-shadow:0 4px 18px #0003;border-radius:9px;padding:7px;z-index:10;display:flex;flex-direction:column;min-width:160px}.widget-preview-menu button{background:none;color:#29425f;text-align:left;padding:8px;border-radius:4px;font-size:13px}.widget-preview-menu button:hover{background:#dce6f5}
+
+.widget-quota-line>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.platform-options label{min-width:0;overflow-wrap:anywhere}
+.app-icon{width:27px;height:27px;object-fit:contain;border-radius:7px;flex-shrink:0}.provider-icon img{width:29px;height:29px;object-fit:contain}.widget-app-icon{width:19px;height:19px;object-fit:contain;border-radius:5px}.widget-platform-icon{width:17px;height:17px;object-fit:contain;flex-shrink:0}.widget-brand{letter-spacing:-.35px}.dark .widget-platform.codex .widget-platform-icon{filter:invert(1)}
+.refresh-problem,.widget-problem{display:flex;align-items:center;justify-content:space-between;gap:12px}.refresh-problem .error-message{flex:1;min-width:0}.retry-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;background:#dce9fa;color:#365b92;border-radius:7px;padding:5px 8px;font-size:12px;line-height:1.4;white-space:nowrap;flex-shrink:0}.retry-button:disabled{opacity:.55;cursor:wait}.retry-button:hover:enabled{background:#c8def8}.retry-button:focus-visible{outline:2px solid #4263ce;outline-offset:2px}.widget-problem{margin-top:5px}.widget-problem .widget-warning{margin:0}.dark .retry-button{color:#e1edff;background:#b7d5ff25}.dark .retry-button:hover:enabled{background:#b7d5ff40}
+
+.widget-account-select{max-width:88px;min-width:0;min-height:26px;padding:2px 3px;font:inherit;font-size:11px;font-weight:500;border:1px solid #5f7d9a40;border-radius:5px;color:inherit;background:#ffffff38;text-overflow:ellipsis;cursor:pointer}.widget-account-select:focus-visible{outline:2px solid #4263ce;outline-offset:2px}.widget-account-select:disabled{opacity:.55;cursor:wait}.widget-account-select option{color:#20344e;background:#f5f8fc}.dark .widget-account-select{border-color:#d3e5ff55;background:#d3e5ff18}.widget-platform.aggregate .widget-quota-line{grid-template-columns:minmax(0,1fr) auto}.widget-platform.antigravity .widget-row{gap:5px}.widget-platform.antigravity .widget-name{gap:5px;min-width:0}.widget-platform.antigravity .widget-kind{flex-shrink:0}
+
+.wallpaper-sample{left:var(--wallpaper-x,0px);top:var(--wallpaper-y,0px);width:var(--wallpaper-width,100%);height:var(--wallpaper-height,100%)}
+.desktop-widget:not(.live-background):not(.has-wallpaper) .glass-tint{background:rgb(235 243 253 / var(--glass-opacity,.65))}
+.desktop-widget.dark:not(.live-background):not(.has-wallpaper) .glass-tint{background:rgb(23 36 56 / var(--glass-opacity,.65))}
+
+.live-background .widget-backdrop{background:transparent}

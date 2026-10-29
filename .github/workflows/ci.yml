@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: rustup toolchain install stable --profile minimal --component rustfmt
+      - run: rustup default stable
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: cargo fmt --manifest-path src-tauri/Cargo.toml --check
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --lib --locked
+      - run: cargo fmt --manifest-path native-glass/Cargo.toml --check
+      - run: cargo test --manifest-path native-glass/Cargo.toml --locked
+      - run: npx playwright install msedge
+      - run: npm run test:ui
+      - run: npm run release:check

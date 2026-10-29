@@ -1,0 +1,36 @@
+{
+  "name": "token-plusplus",
+  "private": true,
+  "version": "0.7.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "tauri": "tauri",
+    "desktop": "tauri dev",
+    "desktop:build": "tauri build --no-bundle",
+    "desktop:package": "tauri build --bundles nsis",
+    "test": "node --experimental-strip-types --test src/types.test.ts scripts/release-source.test.mjs",
+    "test:ui": "playwright test",
+    "release:check": "node scripts/release-source.mjs",
+    "release:source": "node scripts/release-source.mjs --export"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.0.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.0",
+    "@playwright/test": "^1.51.0"
+  },
+  "license": "MIT",
+  "author": "murainy"
+}

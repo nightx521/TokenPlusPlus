@@ -1,0 +1,42 @@
+[package]
+name = "token-plusplus"
+version = "0.7.1"
+description = "本地 AI 平台额度小组件"
+license = "MIT"
+authors = ["murainy"]
+edition = "2021"
+
+[lib]
+name = "token_plusplus_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+token-glass-runtime = { path = "../native-glass" }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+tokio = { version = "1", features = ["process", "io-util", "time", "sync", "macros"] }
+chrono = { version = "0.4", features = ["serde"] }
+rust_decimal = "1"
+keyring = { version = "3", features = ["windows-native"] }
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+base64 = "0.22"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_Graphics_Dwm", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_HiDpi"] }
+windows-registry = "0.6"
+windows-version = "0.1.7"
+
+[profile.release]
+strip = true
+opt-level = "s"
+lto = "thin"
+
+[features]
+glass-probe = ["token-glass-runtime/diagnostics"]

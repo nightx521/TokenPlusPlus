@@ -1,0 +1,47 @@
+name: Package
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: rustup toolchain install stable --profile minimal
+      - run: rustup default stable
+      - run: npm ci
+      - run: npm test
+      - run: cargo test --manifest-path src-tauri/Cargo.toml --lib --locked
+      - run: npm run desktop:package -- -- --locked
+      - run: npm run release:source
+      - name: Collect versioned binaries and checksums
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          Copy-Item -LiteralPath src-tauri/target/release/token-plusplus.exe -Destination "artifacts/TokenPlusPlus-$version.exe"
+          $installers = @(Get-ChildItem -LiteralPath src-tauri/target/release/bundle/nsis -Filter '*.exe')
+          if ($installers.Count -ne 1) { throw 'Expected exactly one installer' }
+          Copy-Item -LiteralPath $installers[0].FullName -Destination "artifacts/TokenPlusPlus-$version-setup.exe"
+          Copy-Item -LiteralPath LICENSE -Destination artifacts/LICENSE.txt
+          Copy-Item -LiteralPath THIRD_PARTY_NOTICES.md -Destination artifacts/THIRD_PARTY_NOTICES.md
+          Copy-Item -LiteralPath public/brands/LOBE-ICONS-LICENSE -Destination artifacts/LOBE-ICONS-LICENSE
+          Get-ChildItem artifacts -File | Where-Object { $_.Extension -in '.exe', '.zip' } | ForEach-Object { "$( (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower() )  $($_.Name)" } | Set-Content artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: TokenPlusPlus-windows-x64
+          if-no-files-found: error
+          path: |
+            artifacts/*.exe
+            artifacts/*.zip
+            artifacts/*.sha256
+            artifacts/SHA256SUMS.txt
+            artifacts/LICENSE.txt
+            artifacts/THIRD_PARTY_NOTICES.md
+            artifacts/LOBE-ICONS-LICENSE

@@ -1,0 +1,16 @@
+name: 请求接入平台
+description: 提议新的余额、代金券或订阅额度来源
+body:
+  - type: input
+    id: platform
+    attributes:
+      label: 平台名称
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: 希望显示什么，以及查询文档链接
+      description: 请区分余额、代金券、订阅额度。无需提供账号或凭据。
+    validations:
+      required: true
