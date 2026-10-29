@@ -65,3 +65,7 @@ html.widget-active #root{width:350px}html.native.widget-active #root{width:100%}
 .desktop-widget.dark:not(.live-background):not(.has-wallpaper) .glass-tint{background:rgb(23 36 56 / var(--glass-opacity,.65))}
 
 .live-background .widget-backdrop{background:transparent}
+
+.standard .widget-platform{padding-top:10px;padding-bottom:10px}.compact .widget-content{padding-top:6px;padding-bottom:4px}.compact .widget-platform{padding:6px 0}.compact .widget-header{margin-bottom:1px}.compact .widget-quota{margin-top:3px}.compact .widget-quota-line strong{font-size:calc(15px * var(--ui-scale))}.compact .widget-track{height:3px;margin-top:2px}.compact .widget-kind{display:none}.compact .widget-expiry{margin-top:2px}.compact .widget-name{font-size:calc(13px * var(--ui-scale))}.compact .widget-account-select{min-height:22px}.agent-dense .agent-account{padding:5px 0}.agent-dense .agent-account-title{gap:6px;line-height:1.4}.agent-dense .agent-account-title>strong:first-child{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.agent-dense .agent-models{margin:3px 0 0;max-height:18px;overflow:hidden}.agent-dense .agent-model{font-size:11px}.agent-dense .agent-warning{margin:2px 0}.agent-dense .agent-details-button{font-size:11px}
+
+.compact .widget-kind[role="status"]{display:inline;font-size:10px}

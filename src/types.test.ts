@@ -14,7 +14,7 @@ describe('display accuracy', () => {
   it('keeps reached reset times pending confirmation', () => { assert.match(countdown(1000, 1001), /待确认/); assert.equal(countdown(null), '重置时间未知'); });
   it('uses seconds and handles long windows', () => { assert.equal(countdown(1000 + 7200, 1000), '2 小时 0 分钟后重置'); assert.equal(countdown(1000 + 172800, 1000), '2 天 0 小时后重置'); });
   it('formats Beijing time regardless of machine timezone', () => { assert.match(dateText(0), /08:00/); });
-  it('keeps currencies distinct', () => { assert.equal(amount('1.2','CNY'), '¥ 1.20'); assert.equal(amount('1.2','USD'), '$ 1.20'); });
+  it('keeps currencies distinct', () => { assert.equal(amount('1.2','CNY'), '¥ 1.20'); assert.equal(amount('1.2','USD'), '$ 1.20'); assert.equal(amount('0',''),'0.00'); });
   it('updates countdowns infrequently until a reset is close',()=>{
     const snapshots=demoSnapshots();const now=Date.now()/1000;
     assert.equal(countdownDelay(snapshots,now),30000);

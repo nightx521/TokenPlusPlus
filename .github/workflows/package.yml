@@ -21,6 +21,13 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml --lib --locked
       - run: npm run desktop:package -- -- --locked
       - run: npm run release:source
+      - run: node scripts/privacy-audit.mjs --file src-tauri/target/release/token-plusplus.exe
+      - name: Audit extracted release assets
+        shell: pwsh
+        run: |
+          $installer = (Get-ChildItem src-tauri/target/release/bundle/nsis/*.exe).FullName
+          $source = (Get-ChildItem artifacts/*-source.zip).FullName
+          node scripts/privacy-audit.mjs --archive $installer --archive $source
       - name: Collect versioned binaries and checksums
         shell: pwsh
         run: |

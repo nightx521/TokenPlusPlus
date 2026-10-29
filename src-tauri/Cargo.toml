@@ -1,6 +1,6 @@
 [package]
 name = "token-plusplus"
-version = "0.7.1"
+version = "0.8.0"
 description = "本地 AI 平台额度小组件"
 license = "MIT"
 authors = ["murainy"]

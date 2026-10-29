@@ -1,0 +1,16 @@
+import {test,expect} from '@playwright/test';
+test('account/model/metric selection matches both views and survives parent and page restoration',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:1420/tests/gateway-harness.html');
+ const full=page.getByTestId('full'),compact=page.getByTestId('compact');
+ await expect(full.getByText('积分 123.00',{exact:true})).toBeVisible();await expect(compact.getByText('积分 123.00',{exact:true})).toBeVisible();await expect(full.locator('.agent-reading')).toHaveCount(1);await expect(page.getByTestId('details').locator('.agent-reading')).toHaveCount(2);await page.getByLabel('搜索详情').fill('专属');await expect(page.getByTestId('details').locator('.agent-reading')).toHaveCount(1);await page.getByLabel('搜索详情').fill('');
+ expect(await page.locator('.agent-model img').evaluateAll(images=>images.every(i=>(i as HTMLImageElement).complete&&(i as HTMLImageElement).naturalWidth>0))).toBe(true);
+ await expect(full.locator('img[src="/brands/glm.svg"]')).toHaveCount(1);await expect(full.locator('img[src="/brands/claude.svg"]')).toHaveCount(1);await expect(full.locator('img[src="/brands/generic.svg"]')).toHaveCount(1);
+ await page.getByRole('button',{name:'清空模型',exact:true}).click();await expect(full.getByText('积分 123.00',{exact:true})).toBeVisible();await expect(full.getByText('次 8.00',{exact:true})).toHaveCount(0);await expect(compact.getByText('次 8.00',{exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'清空账号',exact:true}).click();await expect(full.locator('.agent-account')).toHaveCount(0);await page.getByRole('button',{name:'全部账号',exact:true}).click();await expect(full.locator('.agent-model')).toHaveCount(0);
+ await page.reload();await expect(full.locator('.agent-model')).toHaveCount(0);await expect(full.getByText('积分 123.00',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'清空额度项',exact:true}).click();await expect(full.locator('.agent-reading')).toHaveCount(0);await expect(compact.locator('.agent-reading')).toHaveCount(0);
+ await page.getByRole('button',{name:'全选额度项',exact:true}).focus();await page.keyboard.press('Enter');await expect(full.getByText('积分 123.00',{exact:true})).toBeVisible();
+ await page.getByLabel('搜索账号或模型').fill('不存在');await expect(page.locator('.agent-choice')).toHaveCount(0);await expect(full.locator('.agent-account')).toHaveCount(1);expect(errors).toEqual([]);
+ await page.setViewportSize({width:390,height:800});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('Agent2API connection is clearly separate from model invocation',async({page})=>{await page.goto('http://127.0.0.1:1420');await page.getByRole('button',{name:'打开设置'}).click();await page.getByRole('button',{name:'Agent2API',exact:true}).click();await expect(page.getByLabel('管理访问令牌')).toHaveAttribute('type','password');await expect(page.getByRole('button',{name:'测试连接并读取额度'})).toBeDisabled();await expect(page.getByText('图标用于识别模型，不代表已接入对应官方余额查询。')).toBeHidden();await page.getByText('可识别的模型厂商图标').click();expect(await page.locator('.agent-brand-library img').evaluateAll(images=>images.every(i=>(i as HTMLImageElement).complete&&(i as HTMLImageElement).naturalWidth>0))).toBe(true);});

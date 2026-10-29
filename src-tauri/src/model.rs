@@ -36,6 +36,8 @@ pub struct Snapshot {
     pub details: Vec<Detail>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub view: Option<QuotaView>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gateway: Option<crate::agent2api::Data>,
 }
 impl Snapshot {
     pub fn empty(provider: &str, status: &str, message: &str) -> Self {
@@ -47,6 +49,7 @@ impl Snapshot {
             metrics: vec![],
             details: vec![],
             view: None,
+            gateway: None,
         }
     }
     pub fn success(provider: &str) -> Self {
@@ -69,6 +72,9 @@ pub struct Settings {
     pub antigravity_account: String,
     pub antigravity_groups: Vec<String>,
     pub antigravity_minutes: u64,
+    pub agent2api_url: String,
+    pub agent2api_minutes: u64,
+    pub agent2api_selection: crate::agent2api::Selection,
     pub desktop_mode: bool,
     pub compact: bool,
     pub live_background: bool,
@@ -95,6 +101,9 @@ impl Default for Settings {
             antigravity_account: String::new(),
             antigravity_groups: vec![],
             antigravity_minutes: 5,
+            agent2api_url: String::new(),
+            agent2api_minutes: 5,
+            agent2api_selection: crate::agent2api::Selection::default(),
             desktop_mode: false,
             compact: true,
             live_background: false,
@@ -121,11 +130,16 @@ pub struct Store {
 impl Default for Store {
     fn default() -> Self {
         Self {
-            schema_version: 1,
+            schema_version: 2,
             settings: Settings::default(),
             snapshots: vec![
                 Snapshot::empty("deepseek", "unconfigured", "添加 API Key 后查看余额"),
                 Snapshot::empty("huawei", "unconfigured", "添加 AK / SK 后查看代金券"),
+                Snapshot::empty(
+                    "agent2api",
+                    "unconfigured",
+                    "连接 Agent2API 管理接口后读取额度",
+                ),
                 Snapshot::empty("codex", "idle", "等待读取本机登录额度"),
                 Snapshot::empty(
                     "antigravity",

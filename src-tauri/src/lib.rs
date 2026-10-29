@@ -1,4 +1,5 @@
 mod adapters;
+mod agent2api;
 mod antigravity;
 mod desktop;
 mod model;
@@ -91,6 +92,8 @@ fn get_state(state: tauri::State<AppState>) -> Result<ViewState, String> {
                 a.id().into(),
                 if a == adapters::Adapter::Antigravity {
                     antigravity::credential(&store.settings).is_ok()
+                } else if a == adapters::Adapter::Agent2Api {
+                    agent2api::credential(&store.settings).is_ok()
                 } else {
                     providers::credential(a.id()).is_ok()
                 },
@@ -112,6 +115,11 @@ fn save_settings(
     state: tauri::State<AppState>,
 ) -> Result<(), String> {
     antigravity::validate(&settings)?;
+    agent2api::validate(&settings)?;
+    if !settings.agent2api_url.is_empty() {
+        settings.agent2api_url = agent2api::base(&settings)?;
+    }
+    settings.agent2api_selection.version = 1;
     if !settings.antigravity_url.is_empty() {
         settings.antigravity_url = antigravity::service_base(&settings)?;
     }
@@ -145,8 +153,28 @@ fn save_settings(
     {
         return Err("正在查询该平台，请稍后再修改站点或程序路径".into());
     }
+    if busy.contains("agent2api")
+        && (settings.agent2api_url != store.settings.agent2api_url
+            || serde_json::to_value(&settings.agent2api_selection).ok()
+                != serde_json::to_value(&store.settings.agent2api_selection).ok())
+    {
+        return Err("正在查询 Agent2API，请稍后再修改连接或显示项".into());
+    }
     let old = store.clone();
     let mut invalidate = HashSet::new();
+    if old.settings.agent2api_url != settings.agent2api_url
+        || old.settings.agent2api_minutes != settings.agent2api_minutes
+        || serde_json::to_value(&old.settings.agent2api_selection).ok()
+            != serde_json::to_value(&settings.agent2api_selection).ok()
+    {
+        invalidate.insert("agent2api");
+    }
+    if old.settings.agent2api_url != settings.agent2api_url {
+        replace(
+            &mut store,
+            Snapshot::empty("agent2api", "idle", "服务地址已修改，请验证此地址的令牌"),
+        );
+    }
     if old.settings.balance_minutes != settings.balance_minutes {
         invalidate.extend(["deepseek", "huawei"]);
     }
@@ -328,7 +356,9 @@ fn save_credentials(
     } else {
         key.trim().into()
     };
-    if provider == "antigravity" {
+    if provider == "agent2api" {
+        agent2api::save_credential(&store.settings, &key)?;
+    } else if provider == "antigravity" {
         antigravity::save_credential(&store.settings, &key)?;
     } else {
         keyring::Entry::new("TokenPlusPlus", &provider)
@@ -336,7 +366,17 @@ fn save_credentials(
             .set_password(&value)
             .map_err(|_| "凭据保存失败，请检查系统凭据管理器")?;
     }
-    let next = if provider == "antigravity" {
+    let next = if provider == "agent2api" {
+        let mut cached = store
+            .snapshots
+            .iter()
+            .find(|s| s.provider == provider)
+            .cloned()
+            .unwrap_or_else(|| Snapshot::empty(&provider, "idle", "等待查询"));
+        cached.status = "stale".into();
+        cached.message = "令牌已更新，暂显示上次数据".into();
+        cached
+    } else if provider == "antigravity" {
         antigravity::retain_view(
             store.snapshots.iter().find(|s| s.provider == provider),
             &store.settings,
@@ -468,6 +508,8 @@ async fn refresh_one(
     let configured = !adapter.needs_credential()
         || if adapter == adapters::Adapter::Antigravity {
             antigravity::credential(&settings).is_ok()
+        } else if adapter == adapters::Adapter::Agent2Api {
+            agent2api::credential(&settings).is_ok()
         } else {
             providers::credential(&provider).is_ok()
         };
@@ -492,6 +534,12 @@ async fn refresh_one(
                 message,
             ),
         };
+        if provider == "agent2api" {
+            snapshot = agent2api::retain(
+                snapshot,
+                store.snapshots.iter().find(|s| s.provider == provider),
+            );
+        }
         replace(&mut store, snapshot.clone());
         if persist(&state, &store).is_err() {
             snapshot.message = format!("{} · 本地缓存保存失败", snapshot.message);
@@ -556,6 +604,47 @@ async fn list_antigravity_accounts(
 }
 
 #[tauri::command]
+async fn open_agent2api_details(app: tauri::AppHandle, account: String) -> Result<(), String> {
+    // WebView2 creation must run outside a synchronous Windows UI command.
+    {
+        let state = app.state::<AppState>();
+        let store = state.store.lock().map_err(|_| "设置暂不可用")?;
+        if !store
+            .snapshots
+            .iter()
+            .find(|s| s.provider == "agent2api")
+            .and_then(|s| s.gateway.as_ref())
+            .is_some_and(|g| g.accounts.iter().any(|a| a.id == account))
+        {
+            return Err("账号不可用，请先刷新目录".into());
+        }
+    }
+    if let Some(window) = app.get_webview_window("agent2api-details") {
+        let _ = window.emit("agent-details-account", &account);
+        window.show().map_err(|_| "无法显示详情")?;
+        let _ = window.set_focus();
+        return Ok(());
+    }
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("view", "agent-details")
+        .append_pair("account", &account)
+        .finish();
+    tauri::WebviewWindowBuilder::new(
+        &app,
+        "agent2api-details",
+        tauri::WebviewUrl::App(format!("index.html?{query}").into()),
+    )
+    .title("Token++ · 额度详情")
+    .inner_size(620., 740.)
+    .min_inner_size(420., 360.)
+    .decorations(true)
+    .resizable(true)
+    .build()
+    .map_err(|_| "无法打开详情窗口")?;
+    Ok(())
+}
+
+#[tauri::command]
 fn open_platform(provider: String) -> Result<(), String> {
     let url = adapters::Adapter::parse(&provider).ok_or("无效平台")?.url();
     #[cfg(windows)]
@@ -585,6 +674,7 @@ pub fn run() {
             refresh_provider,
             list_antigravity_accounts,
             open_platform,
+            open_agent2api_details,
             set_display_mode,
             desktop_menu,
             remember_widget_position,
@@ -614,8 +704,17 @@ pub fn run() {
             let mut store: Store = std::fs::read(&path)
                 .ok()
                 .and_then(|b| serde_json::from_slice::<Store>(&b).ok())
-                .filter(|s| s.schema_version == 1)
+                .filter(|s| (1..=2).contains(&s.schema_version))
                 .unwrap_or_default();
+            store.schema_version = 2;
+            store.settings.agent2api_selection.version = 1;
+            if !store.snapshots.iter().any(|s| s.provider == "agent2api") {
+                store.snapshots.push(Snapshot::empty(
+                    "agent2api",
+                    "unconfigured",
+                    "连接 Agent2API 后查看额度",
+                ));
+            }
             store.settings.balance_minutes = store.settings.balance_minutes.clamp(1, 120);
             store.settings.quota_minutes = store.settings.quota_minutes.clamp(1, 120);
             store.settings.font_scale = store.settings.font_scale.clamp(90, 140);
@@ -755,6 +854,9 @@ pub fn run() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if window.label() != "main" {
+                return;
+            }
             if matches!(event, tauri::WindowEvent::ScaleFactorChanged { .. }) {
                 // Let Windows finish applying its suggested DPI rectangle before updating clipping.
                 let app = window.app_handle().clone();

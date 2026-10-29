@@ -27,3 +27,7 @@
 CI 在 Windows 上执行前端、Rust 与界面测试；手动运行 `Package` 工作流只生成可下载构建产物，不自动发布。CI 实际运行结果以 GitHub 页面为准，本地测试不能代替远端验证。
 
 准备好仓库后创建与应用版本匹配的 `v0.x.y` 标签和 Release，上传安装包、便携版、源码 ZIP、SHA256 清单及已知限制；当前 0.x 建议标为预发布。没有代码签名证书时明确说明安装包未签名，Windows 可能提示未知发布者。不要承诺绕过系统安全提示。
+
+## 0.8.0 隐私验收
+
+使用 `npm run desktop:package`，该入口传入编译路径重映射，不要用未映射路径的手工 cargo build 结果作为公开附件。构建后运行 `node scripts/privacy-audit.mjs --history --file src-tauri/target/release/token-plusplus.exe --archive 安装包路径 --archive 源码包路径`；安装包检查使用 7-Zip 实际解包后扫描其 EXE。校验输出不打印凭据内容。真实 Agent2API 部署的访问令牌只在软件中输入，测试报告不保存响应原文。新版验收前保留旧附件；验收后撤下 v0.7.1 两个 EXE、更新其说明及校验清单，保留源码及许可。

@@ -28,3 +28,4 @@ jobs:
       - run: npx playwright install msedge
       - run: npm run test:ui
       - run: npm run release:check
+      - run: npm run privacy:check

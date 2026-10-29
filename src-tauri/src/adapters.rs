@@ -9,13 +9,15 @@ use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Adapter {
+    Agent2Api,
     DeepSeek,
     Huawei,
     Codex,
     Antigravity,
 }
 
-pub const ALL: [Adapter; 4] = [
+pub const ALL: [Adapter; 5] = [
+    Adapter::Agent2Api,
     Adapter::DeepSeek,
     Adapter::Huawei,
     Adapter::Codex,
@@ -28,6 +30,7 @@ impl Adapter {
     }
     pub fn id(self) -> &'static str {
         match self {
+            Self::Agent2Api => "agent2api",
             Self::DeepSeek => "deepseek",
             Self::Huawei => "huawei",
             Self::Codex => "codex",
@@ -39,6 +42,7 @@ impl Adapter {
     }
     pub fn interval_minutes(self, settings: &Settings) -> u64 {
         match self {
+            Self::Agent2Api => settings.agent2api_minutes,
             Self::Codex => settings.quota_minutes,
             Self::Antigravity => settings.antigravity_minutes,
             _ => settings.balance_minutes,
@@ -48,6 +52,7 @@ impl Adapter {
         match self {
             Self::DeepSeek => "https://platform.deepseek.com/usage",
             Self::Huawei => "https://account.huaweicloud.com/usercenter/#/coupons",
+            Self::Agent2Api => "https://github.com/aimod-cc/Agent2API",
             Self::Codex => "https://chatgpt.com/codex/settings/usage",
             Self::Antigravity => "https://antigravity.google/",
         }
@@ -65,6 +70,7 @@ impl Adapter {
                     .await
                     .unwrap_or_else(|_| Err("华为云完整查询超时，请稍后重试".into()))
             }
+            Self::Agent2Api => crate::agent2api::query(settings, force).await,
             Self::Codex => providers::codex(settings).await,
             Self::Antigravity => antigravity::query(settings, force).await,
         }
@@ -82,7 +88,7 @@ mod tests {
         for id in ["", "unknown", "CODEX", "https://example.com"] {
             assert_eq!(Adapter::parse(id), None);
         }
-        assert_eq!(ALL.into_iter().filter(|a| a.needs_credential()).count(), 3);
+        assert_eq!(ALL.into_iter().filter(|a| a.needs_credential()).count(), 4);
         assert!(!Adapter::Codex.needs_credential());
     }
     #[test]

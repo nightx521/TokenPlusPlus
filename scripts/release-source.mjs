@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 export const rootFiles = ['.gitignore', 'README.md', 'LICENSE', 'CONTRIBUTING.md', 'SECURITY.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md', 'package.json', 'package-lock.json', 'index.html', 'tsconfig.json', 'tsconfig.node.json', 'vite.config.ts', 'playwright.config.ts'];
 export const sourceDirs = ['src', 'public', 'assets/branding', 'tests', '.github', 'docs'];
-export const rustFiles = ['native-glass/Cargo.toml', 'native-glass/Cargo.lock', 'native-glass/README.md', 'src-tauri/Cargo.toml', 'src-tauri/Cargo.lock', 'src-tauri/build.rs', 'src-tauri/tauri.conf.json', 'src-tauri/icons/icon.ico', 'src-tauri/icons/icon.png'];
+export const rustFiles = ['native-glass/Cargo.toml', 'native-glass/Cargo.lock', 'native-glass/README.md', 'src-tauri/Cargo.toml', 'src-tauri/Cargo.lock', 'src-tauri/build.rs', 'src-tauri/tests/agent2api_live.rs', 'src-tauri/tauri.conf.json', 'src-tauri/icons/icon.ico', 'src-tauri/icons/icon.png'];
 export const rustDirs = ['native-glass/src', 'src-tauri/src', 'src-tauri/capabilities'];
-export const scriptFiles = ['scripts/check-live.mjs', 'scripts/move-native-test.ps1', 'scripts/release-source.mjs', 'scripts/release-source.test.mjs', 'scripts/check-widget.mjs', 'scripts/check-desktop.mjs', 'scripts/check-antigravity.mjs'];
+export const scriptFiles = ['scripts/check-agent2api.mjs','scripts/package-private.mjs','scripts/privacy-audit.mjs','scripts/privacy-audit.test.mjs','scripts/check-live.mjs', 'scripts/move-native-test.ps1', 'scripts/release-source.mjs', 'scripts/release-source.test.mjs', 'scripts/check-widget.mjs', 'scripts/check-desktop.mjs', 'scripts/check-antigravity.mjs'];
 const binaryExtensions = new Set(['.png', '.ico', '.jpg', '.jpeg', '.webp']);
 const textExtensions = new Set(['.md', '.txt', '.json', '.toml', '.lock', '.rs', '.ts', '.tsx', '.js', '.mjs', '.css', '.html', '.svg', '.yml', '.yaml', '.ps1']);
 const rules = [

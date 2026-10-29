@@ -1,13 +1,19 @@
-export type ProviderId = 'deepseek' | 'huawei' | 'codex' | 'antigravity';
+export type ProviderId = 'deepseek' | 'huawei' | 'codex' | 'antigravity' | 'agent2api';
 export interface Metric { label: string; value: string; unit: string; remainingPercent: number | null; resetsAt: number | null }
 export interface QuotaView { account: string; groups: string[]; service: string }
-export interface Snapshot { view?: QuotaView | null; provider: ProviderId; status: string; message: string; updatedAt: number | null; metrics: Metric[]; details: { label: string; value: string }[] }
-export interface Settings { alwaysOnTop: boolean; balanceMinutes: number; quotaMinutes: number; huaweiSite: string; codexPath: string; antigravityPort: number; antigravityUrl: string; antigravityAccount: string; antigravityGroups: string[]; antigravityMinutes: number; desktopMode: boolean; compact: boolean; liveBackground: boolean; glass: 'frosted' | 'liquid'; glassTone: 'light' | 'dark'; opacity: number; fontScale: number; positionLocked: boolean; showExpiry: boolean; visiblePlatforms: ProviderId[]; desktopPosition?: [number,number] | null; panelBounds?: [number,number,number,number] | null }
+export interface GatewayModel {id:string;name:string;provider:string;target:string;enabled:boolean;brand?:string}
+export interface GatewayReading extends Metric {id:string;modelIds:string[];shared:boolean}
+export interface GatewayAccount {id:string;name:string;provider:string;enabled:boolean;models:GatewayModel[];metrics:GatewayReading[];status:string;message:string;updatedAt:number|null}
+export interface GatewayData {version:number;service:string;accounts:GatewayAccount[]}
+export interface GatewaySelection {version:number;accounts:string[]|null;models:Record<string,string[]>;metrics:Record<string,string[]>}
+export interface Snapshot { gateway?: GatewayData | null; view?: QuotaView | null; provider: ProviderId; status: string; message: string; updatedAt: number | null; metrics: Metric[]; details: { label: string; value: string }[] }
+export interface Settings { agent2apiUrl:string;agent2apiMinutes:number;agent2apiSelection:GatewaySelection; alwaysOnTop: boolean; balanceMinutes: number; quotaMinutes: number; huaweiSite: string; codexPath: string; antigravityPort: number; antigravityUrl: string; antigravityAccount: string; antigravityGroups: string[]; antigravityMinutes: number; desktopMode: boolean; compact: boolean; liveBackground: boolean; glass: 'frosted' | 'liquid'; glassTone: 'light' | 'dark'; opacity: number; fontScale: number; positionLocked: boolean; showExpiry: boolean; visiblePlatforms: ProviderId[]; desktopPosition?: [number,number] | null; panelBounds?: [number,number,number,number] | null }
 export interface ViewState { settings: Settings; snapshots: Snapshot[]; configured: Partial<Record<ProviderId, boolean>>; version: string }
 export const platforms: { id: ProviderId; name: string; subtitle: string; icon: string }[] = [
   { id: 'deepseek', name: 'DeepSeek', subtitle: 'API 余额', icon: '/brands/deepseek.svg' },
   { id: 'huawei', name: '华为云', subtitle: 'ModelArts MaaS · 代金券', icon: '/brands/huawei.png' },
   { id: 'codex', name: 'Codex', subtitle: 'Coding Plan', icon: '/brands/codex.svg' },
+  { id: 'agent2api', name: 'Agent2API', subtitle: '中转服务 · 账号额度', icon: '/brands/agent2api.svg' },
   { id: 'antigravity', name: 'Antigravity', subtitle: 'Google · Coding Plan', icon: '/brands/antigravity.svg' },
 ];
 export function countdown(at: number | null, now = Date.now() / 1000): string {
@@ -25,10 +31,12 @@ export function dateText(at: number): string {
 export function amount(value: string, unit: string): string {
   if (unit === '%') return `${value}%`;
   const n = Number(value);
+  const prefix=unit==='CNY'?'¥':unit==='USD'?'$':unit;
+  if(!prefix)return Number.isFinite(n)?n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
   return `${unit === 'CNY' ? '¥' : unit === 'USD' ? '$' : unit} ${Number.isFinite(n) ? n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}`;
 }
 export function initialState(): ViewState {
-  return { version: '0.7.1', configured: {}, settings: { alwaysOnTop: false, balanceMinutes: 10, quotaMinutes: 3, huaweiSite: 'cn', codexPath: '', antigravityPort: 8045, antigravityUrl: '', antigravityAccount: '', antigravityGroups: [], antigravityMinutes: 5, desktopMode: false, compact: true, liveBackground: false, glass: 'frosted', glassTone: 'light', opacity: 65, fontScale: 100, positionLocked: false, showExpiry: true, visiblePlatforms: ['deepseek','huawei','codex'] }, snapshots: platforms.map(p => ({ provider: p.id, status: p.id === 'codex' ? 'idle' : 'unconfigured', message: p.id === 'antigravity' ? '连接 Antigravity Tools 后读取额度' : p.id === 'codex' ? '读取本机官方登录额度' : '配置后查看真实余额', updatedAt: null, metrics: [], details: [] })) };
+  return { version: '0.8.0', configured: {}, settings: { agent2apiUrl:'',agent2apiMinutes:5,agent2apiSelection:{version:1,accounts:null,models:{},metrics:{}},alwaysOnTop: false, balanceMinutes: 10, quotaMinutes: 3, huaweiSite: 'cn', codexPath: '', antigravityPort: 8045, antigravityUrl: '', antigravityAccount: '', antigravityGroups: [], antigravityMinutes: 5, desktopMode: false, compact: true, liveBackground: false, glass: 'frosted', glassTone: 'light', opacity: 65, fontScale: 100, positionLocked: false, showExpiry: true, visiblePlatforms: ['deepseek','huawei','codex'] }, snapshots: platforms.map(p => ({ provider: p.id, status: p.id === 'codex' ? 'idle' : 'unconfigured', message: p.id === 'antigravity' ? '连接 Antigravity Tools 后读取额度' : p.id === 'codex' ? '读取本机官方登录额度' : '配置后查看真实余额', updatedAt: null, metrics: [], details: [] })) };
 }
 
 export function countdownDelay(snapshots: Snapshot[], now = Date.now()/1000): number {

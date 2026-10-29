@@ -5,6 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import { ArrowLeft, ArrowUpRight, Check, ChevronDown, FlaskConical, KeyRound, Minus, Pin, RefreshCw, Settings2, ShieldCheck, X, Monitor } from 'lucide-react';
 import { amount, toolsGroupMode, toolsViewMatches, displayMetrics, countdown, countdownDelay, dateText, demoSnapshots, initialState, platforms } from './types';
 import Widget from './Widget';
+import {AgentSettings,AgentRows} from './Agent2Api';
 import type { ProviderId, Settings, Snapshot, ViewState } from './types';
 
 const native = isTauri();
@@ -95,7 +96,7 @@ export default function App() {
     </header>
 
     <main>
-      {panel ? <SettingsPanel panel={panel} state={state} native={native} onBack={() => setPanel(null)} onChangePanel={setPanel} onSave={saveSettings} onOpen={openPlatform} onCredentialsSaved={async id => { await load(); await refresh(id); }} notify={notify}/> : <>
+      {panel ? <SettingsPanel panel={panel} state={state} native={native} onBack={() => setPanel(null)} onChangePanel={setPanel} onSave={saveSettings} onReload={load} onOpen={openPlatform} onCredentialsSaved={async id => { await load(); await refresh(id); }} notify={notify}/> : <>
         <section className="intro">
           <div className="intro-top"><span className="section-label">我的 AI 账户</span><button className="icon-button settings-button" aria-label="打开设置" title="设置" onClick={() => setPanel('general')}><Settings2 size={19}/></button></div>
           <h1>额度，一眼看清。</h1>
@@ -109,19 +110,19 @@ export default function App() {
             const isBusy = !demo && busy.includes(p.id);
             const isOpen = expanded === p.id;
             const stale = s.status === 'stale';
-            const ready = s.metrics.length > 0;
+            const ready = s.metrics.length > 0 || !!s.gateway;
             const previousView=p.id==='antigravity'&&ready&&!toolsViewMatches(s,state.settings);
             const label = isBusy ? (previousView?'更新中 · 上次结果':'更新中') : previousView?'上次视图' : demo ? '演示' : ({ ready: '已连接', stale: '数据过期', error: '查询失败', unsupported: '待接入', idle: '待刷新', unconfigured: '未配置' }[s.status] || '待刷新');
             return <article key={p.id} className={`provider ${p.id} ${stale ? 'is-stale' : ''}`}>
               <div className="provider-heading"><div className="identity"><span className="provider-icon"><img src={p.icon} alt=""/></span><div><h2>{p.name}</h2><p>{p.subtitle}</p></div></div><span className={`badge ${s.status === 'ready' ? 'ok' : stale || s.status === 'error' ? 'warn' : ''}`}><i className={`status-dot ${s.status === 'ready' ? 'green' : ''}`}/>{label}</span></div>
-              {ready ? <div className="metrics">{displayMetrics(s).map((m, i) => <div className="metric" key={`${m.label}-${i}`}>
+              {p.id==='agent2api'&&s.gateway?<AgentRows snapshot={s} settings={state.settings} now={now}/>:ready ? <div className="metrics">{displayMetrics(s).map((m, i) => <div className="metric" key={`${m.label}-${i}`}>
                 <div className="metric-line"><span className="metric-label">{m.label}</span><strong className={m.remainingPercent === null ? 'balance-value' : 'quota-value'}>{amount(m.value, m.unit)}{m.remainingPercent !== null && <small>剩余</small>}</strong></div>
                 {m.remainingPercent !== null && <><div className="progress-track"><div className={m.remainingPercent < 15 ? 'low' : ''} style={{ width: `${m.remainingPercent}%` }}/></div><div className="reset-line">{p.id==='antigravity'&&(s.view?.account??state.settings.antigravityAccount)==='__all__'?'各账号独立重置':countdown(m.resetsAt, now)}</div></>}
                 {p.id === 'huawei' && m.resetsAt && <p className="coupon-expiry">最近到期：{dateText(m.resetsAt)}（北京时间）</p>}
               </div>)}</div> : <div className="empty-metric"><span className="empty-value">—</span><span>{isBusy ? '正在读取额度…' : s.message}</span></div>}
               {stale || s.status === 'error' ? <div className="refresh-problem"><p className="error-message">{s.message}</p><button className="retry-button" aria-label={`重试 ${p.name}`} disabled={isBusy} onClick={()=>refresh(p.id)}><RefreshCw size={13} className={isBusy?'spinning':''}/>{isBusy?'重试中':'重试'}</button></div> : p.id === 'huawei' && ready ? <p className="provider-note">{s.message}</p> : null}
               <div className="provider-footer"><button className="details-button" aria-expanded={isOpen} onClick={() => setExpanded(isOpen ? null : p.id)}>{isOpen ? '收起详情' : '查看详情'}<ChevronDown size={13} className={isOpen ? 'rotated' : ''}/></button>{!ready ? <button className="connect-button" onClick={() => setPanel(p.id)}>{p.id === 'codex' ? '连接设置' : '连接账号'}<ArrowUpRight size={13}/></button> : <button className="icon-button small" aria-label={`刷新 ${p.name}`} title='刷新' disabled={isBusy} onClick={() => refresh(p.id)}><RefreshCw size={13} className={isBusy ? 'spinning' : ''}/></button>}</div>
-              {isOpen && <div className="details"><dl>{s.details.map((d, i) => <div key={i}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}{s.metrics.filter(m => m.remainingPercent !== null).map((m, i) => <div key={`time-${i}`}><dt>{m.label} 重置</dt><dd>{m.resetsAt ? `${dateText(m.resetsAt)}（北京时间）` : '时间未知'}</dd></div>)}<div><dt>上次成功更新</dt><dd>{s.updatedAt ? dateText(s.updatedAt) : '尚无数据'}</dd></div><div><dt>数据来源</dt><dd>{demo ? '演示数据' : p.id === 'codex' ? '本机官方 Codex' : p.id === 'antigravity' ? 'Antigravity Tools' : '官方查询接口'}</dd></div></dl><div className="detail-actions"><button className="text-button" onClick={() => openPlatform(p.id)}>{p.id === 'antigravity' ? '打开官网' : '打开平台'}<ArrowUpRight size={12}/></button><button className="text-button" onClick={() => setPanel(p.id)}>连接设置</button></div></div>}
+              {isOpen && <div className="details"><dl>{s.details.map((d, i) => <div key={i}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}{s.metrics.filter(m => m.remainingPercent !== null).map((m, i) => <div key={`time-${i}`}><dt>{m.label} 重置</dt><dd>{m.resetsAt ? `${dateText(m.resetsAt)}（北京时间）` : '时间未知'}</dd></div>)}<div><dt>上次成功更新</dt><dd>{s.updatedAt ? dateText(s.updatedAt) : '尚无数据'}</dd></div><div><dt>数据来源</dt><dd>{demo ? '演示数据' : p.id === 'codex' ? '本机官方 Codex' : p.id === 'antigravity' ? 'Antigravity Tools' : p.id==='agent2api'?'Agent2API 管理接口':'官方查询接口'}</dd></div></dl><div className="detail-actions"><button className="text-button" onClick={() => openPlatform(p.id)}>{p.id === 'antigravity' ? '打开官网' : '打开平台'}<ArrowUpRight size={12}/></button><button className="text-button" onClick={() => setPanel(p.id)}>连接设置</button></div></div>}
             </article>;
           })}
         </section>
@@ -134,7 +135,7 @@ export default function App() {
   </div>;
 }
 
-function SettingsPanel({ panel, state, native, onBack, onChangePanel, onSave, onOpen, onCredentialsSaved, notify }: { panel: Exclude<Panel, null>; state: ViewState; native: boolean; onBack: () => void; onChangePanel: (panel: Panel) => void; onSave: (settings: Settings) => Promise<void>; onOpen: (id: ProviderId) => Promise<void>; onCredentialsSaved: (id: ProviderId) => Promise<void>; notify: (message: string) => void }) {
+function SettingsPanel({ panel, state, native, onBack, onChangePanel, onSave, onReload, onOpen, onCredentialsSaved, notify }: { panel: Exclude<Panel, null>; state: ViewState; native: boolean; onBack: () => void; onChangePanel: (panel: Panel) => void; onSave: (settings: Settings) => Promise<void>; onReload:()=>Promise<void>; onOpen: (id: ProviderId) => Promise<void>; onCredentialsSaved: (id: ProviderId) => Promise<void>; notify: (message: string) => void }) {
   const [settings, setSettings] = useState(state.settings);
   const [key, setKey] = useState('');
   const [secret, setSecret] = useState('');
@@ -195,11 +196,12 @@ function SettingsPanel({ panel, state, native, onBack, onChangePanel, onSave, on
     <nav className="settings-tabs" aria-label="设置分类">{[{ id: 'general', name: '通用' }, ...platforms].map(p => <button key={p.id} className={panel === p.id ? 'selected' : ''} onClick={() => onChangePanel(p.id as Panel)}>{p.name}</button>)}</nav>
     <form onSubmit={submit}>
       <h2>{p ? p.name : '桌面与刷新'}</h2>
+      {panel==='agent2api'&&<AgentSettings state={state} native={native} onSave={onSave} onConnected={onReload} onError={notify}/>}
       {panel === 'general' && <>
         <label className="switch-row"><span><strong>开机自启</strong><small>{autostart===null?'正在读取 Windows 设置…':'登录 Windows 后启动，修改立即生效'}</small></span><input type="checkbox" checked={autostart===true} disabled={startupBusy||autostart===null} onChange={e=>toggleAutostart(e.target.checked)}/></label>
         <div className="info-box">自动启动时恢复桌面组件；如果上次使用完整面板，则先收起到托盘。建议安装后再开启，避免移动程序导致启动路径失效。</div>
         <label className="switch-row"><span><strong>桌面模式</strong><small>显示在壁纸层，隐藏任务栏按钮</small></span><input type="checkbox" checked={settings.desktopMode} onChange={e=>setSettings({...settings,desktopMode:e.target.checked})}/></label>
-        <label className="switch-row"><span><strong>桌面精简显示</strong><small>保留余额、额度和重置时间</small></span><input type="checkbox" checked={settings.compact} onChange={e=>setSettings({...settings,compact:e.target.checked})}/></label>
+        <label className="switch-row"><span><strong>桌面精简显示</strong><small>每项 1–3 行；关闭后使用标准布局</small></span><input type="checkbox" checked={settings.compact} onChange={e=>setSettings({...settings,compact:e.target.checked})}/></label>
         <label className="switch-row"><span><strong>动态壁纸原生毛玻璃</strong><small>由 Windows 实时合成背景；需要 Windows 11 并开启系统透明效果</small></span><input type="checkbox" checked={settings.liveBackground} onChange={e=>setSettings({...settings,liveBackground:e.target.checked})}/></label>
         <label className="field">桌面背景材质<select value={settings.glass} onChange={e=>setSettings({...settings,glass:e.target.value as Settings['glass']})}><option value="frosted">毛玻璃</option><option value="liquid">液态玻璃</option></select></label>
         <div className="settings-grid"><label className="field">玻璃明暗<select value={settings.glassTone} onChange={e=>setSettings({...settings,glassTone:e.target.value as Settings['glassTone']})}><option value="light">浅色</option><option value="dark">深色</option></select></label><label className="field">底色不透明度<select value={settings.opacity} onChange={e=>setSettings({...settings,opacity:Number(e.target.value)})}>{[35,50,65,80,95].map(n=><option value={n} key={n}>{n}%</option>)}</select></label></div>
@@ -207,7 +209,7 @@ function SettingsPanel({ panel, state, native, onBack, onChangePanel, onSave, on
         <label className="switch-row"><span><strong>锁定桌面位置</strong><small>右键菜单或托盘可随时恢复操作</small></span><input type="checkbox" checked={settings.positionLocked} onChange={e=>setSettings({...settings,positionLocked:e.target.checked})}/></label>
         <label className="switch-row"><span><strong>显示最近代金券到期日</strong></span><input type="checkbox" checked={settings.showExpiry} onChange={e=>setSettings({...settings,showExpiry:e.target.checked})}/></label>
         <fieldset className="platform-options"><legend>桌面显示的平台</legend>{platforms.map(p=><label key={p.id}><input type="checkbox" checked={settings.visiblePlatforms.includes(p.id)} onChange={e=>setSettings({...settings,visiblePlatforms:e.target.checked?[...settings.visiblePlatforms,p.id]:settings.visiblePlatforms.filter(id=>id!==p.id)})}/>{p.name}</label>)}</fieldset>
-        <div className="info-box">静态模式使用壁纸文件。实时模式适配动态壁纸与每屏不同背景，会在显卡内采集组件所在屏幕并进行模糊；屏幕上的其他窗口可能经过显卡处理。关闭或收起组件后停止采集。</div>
+        <div className="info-box">静态模式使用壁纸文件。实时模式由 Windows 原生合成动态背景，需要 Windows 11 并开启系统透明效果。</div>
         <label className="switch-row"><span><strong>窗口置顶</strong><small>工作时保持额度小卡片可见</small></span><input type="checkbox" checked={settings.alwaysOnTop} onChange={e => setSettings({ ...settings, alwaysOnTop: e.target.checked })}/></label>
         <label className="field">余额与代金券刷新间隔<span className="input-unit"><input required type="number" min="1" max="120" value={settings.balanceMinutes} onChange={e => setSettings({ ...settings, balanceMinutes: Number(e.target.value) })}/><span>分钟</span></span></label>
         <label className="field">订阅额度刷新间隔<span className="input-unit"><input required type="number" min="1" max="120" value={settings.quotaMinutes} onChange={e => setSettings({ ...settings, quotaMinutes: Number(e.target.value) })}/><span>分钟</span></span></label>
@@ -244,7 +246,7 @@ function SettingsPanel({ panel, state, native, onBack, onChangePanel, onSave, on
         <p className="privacy-note">此选项统一应用于所有账号与综合平均，切换账号后保持不变。</p>
         <div className="info-box">可在桌面标题旁切换单个账号或综合平均。综合按账号等权，短期与每周、不同额度池分别统计；各账号独立重置。服务不可达时保留旧数据。</div>
       </>}
-      <button className="primary-button" disabled={saving} type="submit">{saving ? <RefreshCw size={15} className="spinning"/> : <ShieldCheck size={15}/>} {saving ? '处理中…' : panel === 'general' ? '保存设置' : panel === 'codex' ? '保存并读取额度' : panel==='antigravity'?'保存连接并读取额度':'安全保存并连接'}</button>
+      {panel!=='agent2api'&&<button className="primary-button" disabled={saving} type="submit">{saving ? <RefreshCw size={15} className="spinning"/> : <ShieldCheck size={15}/>} {saving ? '处理中…' : panel === 'general' ? '保存设置' : panel === 'codex' ? '保存并读取额度' : panel==='antigravity'?'保存连接并读取额度':'安全保存并连接'}</button>}
       {p && <button className="platform-link text-button" type="button" onClick={() => onOpen(p.id)}>{p.id === 'antigravity' ? '打开 Antigravity 官网' : `打开 ${p.name} 平台`}<ArrowUpRight size={13}/></button>}
       {(panel === 'deepseek' || panel === 'huawei' || panel==='antigravity') && state.configured[panel] && <button className="remove-button" type="button" disabled={saving} onClick={remove}>移除本机保存的凭据</button>}
     </form>

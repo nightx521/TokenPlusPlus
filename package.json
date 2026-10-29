@@ -1,7 +1,7 @@
 {
   "name": "token-plusplus",
   "private": true,
-  "version": "0.7.1",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -10,11 +10,12 @@
     "tauri": "tauri",
     "desktop": "tauri dev",
     "desktop:build": "tauri build --no-bundle",
-    "desktop:package": "tauri build --bundles nsis",
-    "test": "node --experimental-strip-types --test src/types.test.ts scripts/release-source.test.mjs",
+    "desktop:package": "node scripts/package-private.mjs",
+    "test": "node --experimental-strip-types --test src/types.test.ts src/gateway.test.ts scripts/release-source.test.mjs scripts/privacy-audit.test.mjs",
     "test:ui": "playwright test",
     "release:check": "node scripts/release-source.mjs",
-    "release:source": "node scripts/release-source.mjs --export"
+    "release:source": "node scripts/release-source.mjs --export",
+    "privacy:check": "node scripts/privacy-audit.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",
